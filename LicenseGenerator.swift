@@ -17,7 +17,7 @@ class LicenseGenerator {
         let copyAnswerSymbol = dlsym(handle, "MGCopyAnswer")
         let copyAnswerFunction = unsafeBitCast(copyAnswerSymbol, to: MGCopyAnswer.self)
         let UDID = copyAnswerFunction("UniqueDeviceID" as CFString) as String // UDID
-        Console.shared.log("[+] UDID: " + UDID)
+        // Console.shared.log("[+] UDID: " + UDID)
         let EthernetAddressV1 = copyAnswerFunction("EthernetMacAddress" as CFString) as String // MACv1
         var EthernetAddressV2 = "" // MACv2
         let components = EthernetAddressV1.components(separatedBy: ":")
@@ -29,7 +29,7 @@ class LicenseGenerator {
                 EthernetAddressV2 = finalString
             }
         }
-        Console.shared.log("[+] MACv2: " + UDID)
+        // Console.shared.log("[+] MACv2: " + UDID)
         return GenerateLicenseWrapper(UDID: UDID, model: getDeviceModel(), MACv2: EthernetAddressV2)
     }
     
