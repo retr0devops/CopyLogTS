@@ -12,8 +12,6 @@ typealias MGCopyAnswer = (@convention(c) (CFString) -> CFString)
 
 class LicenseGenerator {
     
-    class LicenseGenerator {
-    
     static func GenerateLicense() -> String? {
         guard let handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_NOW) else {
             return nil
