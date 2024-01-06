@@ -1,0 +1,129 @@
+//
+//  LicenseGenerator.swift
+//  CLCracker
+//
+//  Created by Maksim on 06.01.2024.
+//
+
+import Foundation
+import CommonCrypto
+
+func MD5(_ string: String) -> String? {
+    let length = Int(CC_MD5_DIGEST_LENGTH)
+    var digest = [UInt8](repeating: 0, count: length)
+
+    if let d = string.data(using: String.Encoding.utf8) {
+        _ = d.withUnsafeBytes { (body: UnsafePointer<UInt8>) in
+            CC_MD5(body, CC_LONG(d.count), &digest)
+        }
+    }
+
+    return (0..<length).reduce("") {
+        $0 + String(format: "%02x", digest[$1])
+    }
+}
+
+func getDeviceModel() -> String {
+    var systemInfo = utsname()
+    uname(&systemInfo)
+
+    let machineMirror = Mirror(reflecting: systemInfo.machine)
+    let identifier = machineMirror.children.reduce("") { identifier, element in
+        guard let value = element.value as? Int8, value != 0 else { return identifier }
+        return identifier + String(UnicodeScalar(UInt8(value)))
+    }
+
+    return identifier
+}
+
+func generateLicenseV2String(UDID: String, Model: String) -> String? {
+    let originalString = "947066a0b35b3bf2ecd4d697cc6e6700" + UDID + "a1" + Model
+    
+    var md5String = MD5(originalString)
+    
+    let indexToRemove5 = md5String!.index(md5String!.endIndex, offsetBy: -5)
+    let indexToRemove6 = md5String!.index(md5String!.endIndex, offsetBy: -6)
+    md5String!.remove(at: indexToRemove5)
+    md5String!.remove(at: indexToRemove6)
+    
+    let insertionIndex = md5String!.index(md5String!.endIndex, offsetBy: -16)
+    let substringToInsert = "a1"
+    md5String!.insert(contentsOf: substringToInsert, at: insertionIndex)
+    
+    return md5String
+}
+
+func generateRequest256Key(MACv2: String) -> String? {
+    let result = MACv2 + "a1" + MACv2 + "14a1a1"
+    return result
+}
+
+func generateRequest256(key: String) -> String? {
+    let text = "CL_IIllIllllIlIllllIIIIlIIlIlllIlIIlIlIIIlI:;CL_IIllIllIIllIIllllllIIIIIllIlllIIllIllIII:;CL_lIllIllIIlIlIIlIIIlIIlIIlllllllIIIIIIlIl"
+    guard let plaintextData = text.data(using: .utf8),
+          let keyData = key.data(using: .utf8) else {
+        return nil
+    }
+
+    let bufferSize = plaintextData.count + kCCBlockSizeAES128
+    var buffer = [UInt8](repeating: 0, count: bufferSize)
+
+    var numBytesEncrypted: size_t = 0
+
+    let status = keyData.withUnsafeBytes { keyBytes in
+        plaintextData.withUnsafeBytes { dataBytes in
+            CCCrypt(CCOperation(kCCEncrypt),
+                    CCAlgorithm(kCCAlgorithmAES),
+                    CCOptions(kCCOptionPKCS7Padding),
+                    keyBytes.baseAddress,
+                    keyData.count,
+                    nil,
+                    dataBytes.baseAddress,
+                    plaintextData.count,
+                    &buffer,
+                    bufferSize,
+                    &numBytesEncrypted)
+        }
+    }
+
+    if status == kCCSuccess {
+        let encryptedData = Data(bytes: buffer, count: numBytesEncrypted)
+        return encryptedData.base64EncodedString()
+    }
+
+    return nil
+}
+
+func encodeRequest256field(_ request256field: String) -> String? {
+    guard let requestData = request256field.data(using: .utf8) else {
+        return nil
+    }
+
+    let base64String = requestData.base64EncodedString()
+    return base64String
+}
+
+func generateXMLString(LicenseV2field: String, Request256fieldBase64: String) -> String {
+
+    let xmlString =
+    """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+        <key>DidShowSetup</key>
+        <integer>1</integer>
+        <key>LicenseV2</key>
+        <string>\(LicenseV2field)</string>
+        <key>Request256</key>
+        <data>
+        \(Request256fieldBase64)
+        </data>
+        <key>Version</key>
+        <string>144BC3</string>
+    </dict>
+    </plist>
+    """
+
+    return xmlString
+}
