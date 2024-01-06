@@ -9,6 +9,33 @@ import Foundation
 import CommonCrypto
 
 class LicenseGenerator {
+    
+    static func GenerateLicense() -> String? {
+        let handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_NOW)
+        let copyAnswerSymbol = dlsym(handle, "MGCopyAnswer")
+        let copyAnswerFunction = unsafeBitCast(copyAnswerSymbol, to: MGCopyAnswer.self)
+        let UDID = copyAnswerFunction("UniqueDeviceID" as CFString) as String // UDID
+        let EthernetAddressV1 = copyAnswerFunction("EthernetMacAddress" as CFString) as String // MACv1
+        var EthernetAddressV2 = "" // MACv2
+        let components = EthernetAddressV1.components(separatedBy: ":")
+        if components.count >= 1 {
+            if var firstOctet = UInt8(components[0], radix: 16) {
+                firstOctet += 2
+                let modifiedString = String(format: "%02X%@", firstOctet, components[1...].joined(separator: ""))
+                let finalString = modifiedString.lowercased().replacingOccurrences(of: ":", with: "")
+                EthernetAddressV2 = finalString
+            }
+        }
+        return GenerateLicenseWrapper(UDID: UDID, model: getDeviceModel(), MACv2: EthernetAddressV2)
+    }
+    
+    static func GenerateLicenseWrapper(UDID: String, model: String, MACv2: String) -> String? {
+        let LicenseV2field = LicenseGenerator.generateLicenseV2String(UDID: UDID, Model: model)
+        let Request256field = LicenseGenerator.generateRequest256(key: LicenseGenerator.generateRequest256Key(MACv2: MACv2)!)
+        let Request256fieldBase64 = LicenseGenerator.encodeRequest256field(Request256field!)
+        return generateXMLString(LicenseV2field: LicenseV2field!, Request256fieldBase64: Request256fieldBase64!)
+    }
+    
     static func MD5(_ string: String) -> String? {
         let length = Int(CC_MD5_DIGEST_LENGTH)
         var digest = [UInt8](repeating: 0, count: length)
