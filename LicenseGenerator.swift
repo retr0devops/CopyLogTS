@@ -8,6 +8,8 @@
 import Foundation
 import CommonCrypto
 
+typealias MGCopyAnswer = (@convention(c) (CFString) -> CFString)
+
 class LicenseGenerator {
     
     static func GenerateLicense() -> String? {
