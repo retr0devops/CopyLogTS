@@ -13,29 +13,14 @@ typealias MGCopyAnswer = (@convention(c) (CFString) -> CFString)
 class LicenseGenerator {
     
     static func GenerateLicense() -> String? {
-        guard let handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_NOW) else {
-            return nil
-        }
-
-        guard let copyAnswerSymbol = dlsym(handle, "MGCopyAnswer") else {
-            dlclose(handle)
-            return nil
-        }
-
+        let handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_NOW)
+        let copyAnswerSymbol = dlsym(handle, "MGCopyAnswer")
         let copyAnswerFunction = unsafeBitCast(copyAnswerSymbol, to: MGCopyAnswer.self)
-        let UDID = copyAnswerFunction("UniqueDeviceID" as CFString) as String?
-        let EthernetAddressV1 = copyAnswerFunction("EthernetMacAddress" as CFString) as String?
-
-        guard UDID != nil else {
-            return nil
-        }
-
-        guard EthernetAddressV1 != nil else {
-            return nil
-        }
-
+        let UDID = copyAnswerFunction("UniqueDeviceID" as CFString) as String // UDID
+        Console.shared.log("[+] UDID: " + UDID)
+        let EthernetAddressV1 = copyAnswerFunction("EthernetMacAddress" as CFString) as String // MACv1
         var EthernetAddressV2 = "" // MACv2
-        let components = EthernetAddressV1!.components(separatedBy: ":")
+        let components = EthernetAddressV1.components(separatedBy: ":")
         if components.count >= 1 {
             if var firstOctet = UInt8(components[0], radix: 16) {
                 firstOctet += 2
@@ -44,16 +29,8 @@ class LicenseGenerator {
                 EthernetAddressV2 = finalString
             }
         }
-
-        let deviceModel = getDeviceModel()
-        guard deviceModel != nil else {
-            return nil
-        }
-        
-        dlclose(handle)
-
-        let license = GenerateLicenseWrapper(UDID: UDID!, model: deviceModel!, MACv2: EthernetAddressV2)!
-        return license
+        Console.shared.log("[+] MACv2: " + UDID)
+        return GenerateLicenseWrapper(UDID: UDID, model: getDeviceModel(), MACv2: EthernetAddressV2)
     }
     
     static func GenerateLicenseWrapper(UDID: String, model: String, MACv2: String) -> String? {
