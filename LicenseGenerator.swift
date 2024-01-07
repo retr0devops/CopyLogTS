@@ -34,9 +34,9 @@ class LicenseGenerator {
     }
     
     static func GenerateLicenseWrapper(UDID: String, model: String, MACv2: String) -> String? {
-        let LicenseV2field = LicenseGenerator.generateLicenseV2String(UDID: UDID, Model: model)
-        let Request256field = LicenseGenerator.generateRequest256(key: LicenseGenerator.generateRequest256Key(MACv2: MACv2)!)
-        let Request256fieldBase64 = LicenseGenerator.encodeRequest256field(Request256field!)
+        let LicenseV2field = generateLicenseV2String(UDID: UDID, Model: model)
+        let Request256field = generateRequest256(key: generateRequest256Key(MACv2: MACv2)!)
+        let Request256fieldBase64 = encodeRequest256field(Request256field!)
         return generateXMLString(LicenseV2field: LicenseV2field!, Request256fieldBase64: Request256fieldBase64!)
     }
     
