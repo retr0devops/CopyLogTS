@@ -12,6 +12,8 @@ typealias MGCopyAnswer = (@convention(c) (CFString) -> CFString)
 
 class LicenseGenerator {
     
+    static var randomChar: String = ""
+    
     static func GenerateLicense() -> String? {
         let handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_NOW)
         let copyAnswerSymbol = dlsym(handle, "MGCopyAnswer")
@@ -34,6 +36,7 @@ class LicenseGenerator {
     }
     
     static func GenerateLicenseWrapper(UDID: String, model: String, MACv2: String) -> String? {
+        randomChar = generateRandomChars()
         let LicenseV2field = generateLicenseV2String(UDID: UDID, Model: model)
         let Request256field = generateRequest256(key: generateRequest256Key(MACv2: MACv2)!)
         let Request256fieldBase64 = encodeRequest256field(Request256field!)
@@ -55,6 +58,16 @@ class LicenseGenerator {
         }
     }
     
+    static func generateRandomChars() -> String {
+        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        let digits = "0123456789"
+
+        let randomLetter = letters.randomElement() ?? "a"
+        let randomDigit = digits.randomElement() ?? "0"
+
+        return String(randomLetter) + String(randomDigit)
+    }
+    
     static func getDeviceModel() -> String {
         var systemInfo = utsname()
         uname(&systemInfo)
@@ -69,7 +82,7 @@ class LicenseGenerator {
     }
     
     static func generateLicenseV2String(UDID: String, Model: String) -> String? {
-        let originalString = "947066a0b35b3bf2ecd4d697cc6e6700" + UDID + "a1" + Model
+        let originalString = "947066a0b35b3bf2ecd4d697cc6e6700" + UDID + randomChar + Model
         
         var md5String = MD5(originalString)
         
@@ -79,14 +92,14 @@ class LicenseGenerator {
         md5String!.remove(at: indexToRemove6)
         
         let insertionIndex = md5String!.index(md5String!.endIndex, offsetBy: -16)
-        let substringToInsert = "a1"
+        let substringToInsert = randomChar
         md5String!.insert(contentsOf: substringToInsert, at: insertionIndex)
         
         return md5String
     }
     
     static func generateRequest256Key(MACv2: String) -> String? {
-        let result = MACv2 + "a1" + MACv2 + "14a1a1"
+        let result = MACv2 + randomChar + MACv2 + "14" + randomChar + randomChar
         return result
     }
     
