@@ -9,5 +9,8 @@ So how does generation happen?
 2) Then go to the `Request256` field. An encrypted string is written here, containing selectors that probably need to be called for the program to work. AES128 encryption is used, without the initialization vector with a key size of 256 bits (32 characters). The key for encryption/decryption is compiled according to the following format: `MACv2`+`random_chars`+`MACv2`+14+`random_chars`+`random_chars`. `MACv2` is the EthernetAddress of your device, to the first octet of which the number 2 is added. (It was F8 - it will become FA, it was B0 - it will become B2). Where does `random_chars` come from? It is taken from the first paragraph. 16 characters are counted from the end, 17-18 characters are our `random_chars`. I think the logic is clear.
 3) When the program needs to check the license (it does not know the key), it generates it manually according to paragraph two. Thus, all two fields are of great importance in license generation/verification.
 
+# DRM-server
+I also attached the full implementation of its DRM server, the necessary parameters are input. `status` is `LicenseV2`, and `bufferRsa` is `Request256`. Before writing it to the plist, you need to re-encode `Request256` in base64 format.
+
 # P.S
 You can use this for your own personal purposes, for your own DRM. Very good resistance to analysis. It is worth saying that CopyLog is not vulnerable to injection of tweaks, because the import/export tables are broken.
