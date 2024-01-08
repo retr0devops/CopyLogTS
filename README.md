@@ -10,7 +10,10 @@ So how does generation happen?
 3) When the program needs to check the license (it does not know the key), it generates it manually according to paragraph two. Thus, all two fields are of great importance in license generation/verification.
 
 # DRM-server
-I also attached the full implementation of its DRM server, the necessary parameters are input. `status` is `LicenseV2`, and `bufferRsa` is `Request256`. Before writing it to the plist, you need to re-encode `bufferRsa` in base64 format.
+I also attached the full implementation of its DRM server, the necessary parameters are input. `status` is `LicenseV2`, and `bufferRsa` is `Request256`. Before writing it to the plist, you need to re-encode `bufferRsa` in base64 format. There are params and It's description:
+1) udid - UniqueDeviceID of iPhone
+2) model - model of iPhone (iPhone12,1; iPhone 12,3 and so on)
+3) ma - `MACv2` (read above)
 
 # P.S
 You can use this for your own personal purposes, for your own DRM. Very good resistance to analysis. It is worth saying that CopyLog is not vulnerable to injection of tweaks, because the import/export tables are broken.
