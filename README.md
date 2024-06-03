@@ -1,5 +1,8 @@
 This repository contains information about the DRM protection of the TrollStore version of CopyLog. Also attached above is a Swift script for self-generation of licenses. 
 
+UPD 03.06.2024 - This DRM is using in DynamicStage and in CopyLog (JB) too. Just need to update license generation according to them.
+
+
 # How is the license compiled?
 
 At the moment, it is known that two fields are being checked: `LicenseV2` and `Request256`. The license file is located at the path /var/mobile/Library/Preferences/me.tomt000.copylog.other.plist. 
