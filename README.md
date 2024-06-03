@@ -1,6 +1,6 @@
 This repository contains information about the DRM protection of the TrollStore version of CopyLog. Also attached above is a Swift script for self-generation of licenses. 
 
-UPD 03.06.2024 - This DRM is using in DynamicStage and in CopyLog (JB) too. Just need to update license generation according to them.
+UPD 03.06.2024 - This DRM is using in DynamicStage and in CopyLog (JB) too. Just need to update license generation according to them. (selectors)
 
 
 # How is the license compiled?
